@@ -14,9 +14,8 @@ if __name__ == "__main__":
     board1.IfHit()
     board1.ShipDestroyed()
 
-    player1 = Player()
+    player1 = Player(board1)
     player1.RandomShot()
-    player1.FirstHit()
     player1.AnotherHit()
     player1.SetId()
     player1 = Player()

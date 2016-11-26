@@ -1,29 +1,56 @@
 from Board import Board
+from random import randint
 
 class Player:
     id = None
-    #state, that tells if previously player hit once or more
+    #move = state, that tells if earlier player hit once or more
+    #0 - missed
+    #1 - player hit once, then missed -> next player turn -> again his turn
+    #2 - hit twice and so on
     move = None
+    #to not check possibleShots everytime
+    possibleShots = []
+    #player shoots to this board
+    opponentBoard = None
 
-    def __init__(self):
+    def __init__(self, board):
         print("Player created")
+        self.opponentBoard = board
 
-    def RandomShot(self):
+    def PlayersMove(self, *args):
+        if self.move == 0:
+            self.RandomShoot()
+        elif self.move == 1:
+            #args[0] = coorX, args[1] = coorY
+            self.FirstHit(args[0], args[1])
+        else:
+            self.AnotherHit()
+
+    def RandomShoot(self):
         print("Create here mechanism of random shot")
 
+    #will work when availableCoordinates will be initiated
     def FirstHit(self, x, y):
-        #creates possibilities for shots
-        tmpPossibilities = self.CreatePossibilities(x, y)
-        Board.availableCoordinates.append([])
-        Board.availableCoordinates.append([])
-        Board.availableCoordinates[0] = [1,2]
-        Board.availableCoordinates[1] = [3, 2]
+        move = 1
+        if not self.possibleShots:
+            #creates possibilities for shots if list empty
+            self.possibleShots = self.CreatePossibilities(x, y)
 
-        for item in list(tmpPossibilities):
-            if(item not in Board.availableCoordinates):
-                tmpPossibilities.remove(item)
-        print(tmpPossibilities)
-        #print("Create here mechanism when first hit")
+        #removes not possible shoots
+        for item in list(self.possibleShots):
+            if(item not in self.opponentBoard.availableCoordinates):
+                self.possibleShots.remove(item)
+
+        shootCoordinates = self.possibleShots[randint(0, len(self.possibleShots) -1)]
+        result = self.opponentBoard.Shot(shootCoordinates)
+        if result == 1:
+            #first coordinates were x and y
+            #second coordinates are shootCoordinates
+            move = 2
+            self.AnotherHit()
+        if result == 2:
+            move = 0
+            self.RandomShot()
 
     def AnotherHit(self):
         print("Create here mechanism when there are more, than one hit")
