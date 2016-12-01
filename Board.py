@@ -32,6 +32,7 @@ class Board:
 
     def Shot(self, coordinates):
         print("Create mechanism of shotting to coordinates, inform about result")
-        #return 0 - missed, change player
+        #gets array of coordinates, e.g. [1,2]
+        #return 0 - missed, change player?
         #return 1 - hit, but not destroyed
         #return 2 - hit and destroyed

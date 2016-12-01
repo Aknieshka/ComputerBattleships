@@ -4,7 +4,9 @@ from Ship import Ship
 
 if __name__ == "__main__":
     print("main func")
-
+    board1 = Board()
+    player1 = Player(board1)
+    #player1.CreatePossibilities(2, 2, 3,2, 4, 2)
     '''
     board1 = Board()
     board1.CreateBoard()

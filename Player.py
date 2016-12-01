@@ -27,7 +27,13 @@ class Player:
             self.AnotherHit()
 
     def RandomShoot(self):
-        print("Create here mechanism of random shot")
+        shootCoordinates = self.opponentBoard.availableCoordinates[randint[0, len(self.opponentBoard.availableCoordinates)-1]]
+        result = self.opponentBoard.Shot(shootCoordinates)
+        if result == 1:
+            self.FirstHit(shootCoordinates[0], shootCoordinates[1])
+        if result == 2:
+            move = 0
+            self.RandomShoot()
 
     #will work when availableCoordinates will be initiated
     def FirstHit(self, x, y):
@@ -36,24 +42,38 @@ class Player:
             #creates possibilities for shots if list empty
             self.possibleShots = self.CreatePossibilities(x, y)
 
-        #removes not possible shoots
-        for item in list(self.possibleShots):
-            if(item not in self.opponentBoard.availableCoordinates):
-                self.possibleShots.remove(item)
-
         shootCoordinates = self.possibleShots[randint(0, len(self.possibleShots) -1)]
         result = self.opponentBoard.Shot(shootCoordinates)
         if result == 1:
             #first coordinates were x and y
             #second coordinates are shootCoordinates
+            self.possibleShots = []
             move = 2
-            self.AnotherHit()
+            self.AnotherHit(x, y, shootCoordinates[0], shootCoordinates[1])
         if result == 2:
+            self.possibleShots = []
             move = 0
-            self.RandomShot()
+            self.RandomShoot()
 
-    def AnotherHit(self):
-        print("Create here mechanism when there are more, than one hit")
+    def AnotherHit(self, x0, y0, *args):
+        if not self.possibleShots:
+            #creates possibilities for shots if list empty
+            if(len(args) < 3):
+                self.possibleShots = self.CreatePossibilities(x0, y0, args[0], args[1])
+            else:
+                self.possibleShots = self.CreatePossibilities(x0, y0, args[0], args[1], args[2], args[3])
+        shootCoordinates = self.possibleShots[randint(0, 1)]
+        result = self.opponentBoard.Shot(shootCoordinates)
+        if result == 1:
+            #first coordinates were x and y
+            #second coordinates are shootCoordinates
+            #self.possibleShots = []
+            move = 2
+            self.AnotherHit(x0, y0, args[0], args[1], shootCoordinates[0], shootCoordinates[1])
+        if result == 2:
+            self.possibleShots = []
+            move = 0
+            self.RandomShoot()
 
     def SetId(self):
         print("Set player's id")
@@ -61,15 +81,38 @@ class Player:
     def CreatePossibilities(self, x0, y0, *args):
         tmpPossibilities = []
         if args:
-            #more than one hit
-            print(args)
+            for i in range(0, 2):
+                tmpPossibilities.append([])
+            # two hits
+            if(len(args) == 2):
+                if(x0 == args[0]):
+                    tmpPossibilities[0] = [x0, min(y0, args[1]) - 1]
+                    tmpPossibilities[1] = [x0, max(y0, args[1]) + 1]
+                else:
+                    tmpPossibilities[0] = [min(x0, args[0])-1, y0]
+                    tmpPossibilities[1] = [max(x0, args[0])+1, y0]
+
+            # three hits
+            else:
+                if (x0 == args[0]):
+                    tmpPossibilities[0] = [x0, min(y0, args[1], args[3]) - 1]
+                    tmpPossibilities[1] = [x0, max(y0, args[1], args[3]) + 1]
+                else:
+                    tmpPossibilities[0] = [min(x0, args[0], args[2]) - 1, y0]
+                    tmpPossibilities[1] = [max(x0, args[0], args[2]) + 1, y0]
+        # just one hit
         else:
-            #just one hit
             for i in range(0, 4):
                 tmpPossibilities.append([])
             tmpPossibilities[0] = [x0 - 1, y0]
             tmpPossibilities[1] = [x0 + 1, y0]
             tmpPossibilities[2] = [x0, y0 - 1]
             tmpPossibilities[3] = [x0, y0 + 1]
-            return tmpPossibilities
 
+        return self.RemoveNotPossible(tmpPossibilities)
+
+    def RemoveNotPossible(self, tmpPossibilities):
+        for item in list(tmpPossibilities):
+            if (item not in self.opponentBoard.availableCoordinates):
+                tmpPossibilities.remove(item)
+        return tmpPossibilities
