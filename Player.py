@@ -1,118 +1,82 @@
-from Board import Board
-from random import randint
+import random
 
 class Player:
-    id = None
-    #move = state, that tells if earlier player hit once or more
-    #0 - missed
-    #1 - player hit once, then missed -> next player turn -> again his turn
-    #2 - hit twice and so on
-    move = None
-    #to not check possibleShots everytime
-    possibleShots = []
-    #player shoots to this board
-    opponentBoard = None
 
     def __init__(self, board):
         print("Player created")
         self.opponentBoard = board
+        self.lastHits = []
+        self.possibleShots = []
+        self.move = 0
 
-    def PlayersMove(self, *args):
+    def PlayersMove(self):
         if self.move == 0:
             self.RandomShoot()
-        elif self.move == 1:
-            #args[0] = coorX, args[1] = coorY
-            self.FirstHit(args[0], args[1])
         else:
-            self.AnotherHit()
+            self.ShootAfterHit()
 
     def RandomShoot(self):
-        shootCoordinates = self.opponentBoard.availableCoordinates[randint[0, len(self.opponentBoard.availableCoordinates)-1]]
+        shootCoordinates = random.choice(self.opponentBoard.GetAvailableCoordinates())
         result = self.opponentBoard.Shot(shootCoordinates)
         if result == 1:
-            self.FirstHit(shootCoordinates[0], shootCoordinates[1])
-        if result == 2:
-            move = 0
-            self.RandomShoot()
+            self.move = 1
+            self.ExtendLastHits(shootCoordinates)
+            self.ShootAfterHit()
 
-    #will work when availableCoordinates will be initiated
-    def FirstHit(self, x, y):
-        move = 1
+    def ShootAfterHit(self):
         if not self.possibleShots:
-            #creates possibilities for shots if list empty
-            self.possibleShots = self.CreatePossibilities(x, y)
+            self.possibleShots = self.CreatePossiblities()
 
-        shootCoordinates = self.possibleShots[randint(0, len(self.possibleShots) -1)]
+        shootCoordinates = random.choice(self.possibleShots)
         result = self.opponentBoard.Shot(shootCoordinates)
+        if result == 0:
+            self.possibleShots.remove(shootCoordinates)
         if result == 1:
-            #first coordinates were x and y
-            #second coordinates are shootCoordinates
-            self.possibleShots = []
-            move = 2
-            self.AnotherHit(x, y, shootCoordinates[0], shootCoordinates[1])
+            self.ShipHit(shootCoordinates)
         if result == 2:
-            self.possibleShots = []
-            move = 0
-            self.RandomShoot()
+            self.ShipSank()
 
-    def AnotherHit(self, x0, y0, *args):
-        if not self.possibleShots:
-            #creates possibilities for shots if list empty
-            if(len(args) < 3):
-                self.possibleShots = self.CreatePossibilities(x0, y0, args[0], args[1])
-            else:
-                self.possibleShots = self.CreatePossibilities(x0, y0, args[0], args[1], args[2], args[3])
-        shootCoordinates = self.possibleShots[randint(0, 1)]
-        result = self.opponentBoard.Shot(shootCoordinates)
-        if result == 1:
-            #first coordinates were x and y
-            #second coordinates are shootCoordinates
-            #self.possibleShots = []
-            move = 2
-            self.AnotherHit(x0, y0, args[0], args[1], shootCoordinates[0], shootCoordinates[1])
-        if result == 2:
-            self.possibleShots = []
-            move = 0
-            self.RandomShoot()
+    def ShipHit(self, shootCoordinates):
+        self.move = 2
+        self.possibleShots = []
+        self.ExtendLastHits(shootCoordinates)
+        self.ShootAfterHit()
 
-    def SetId(self):
-        print("Set player's id")
+    def ShipSank(self):
+        self.move = 0
+        self.lastHits = []
+        self.possibleShots = []
+        self.RandomShoot()
 
-    def CreatePossibilities(self, x0, y0, *args):
+    def CreatePossiblities(self):
         tmpPossibilities = []
-        if args:
-            for i in range(0, 2):
-                tmpPossibilities.append([])
-            # two hits
-            if(len(args) == 2):
-                if(x0 == args[0]):
-                    tmpPossibilities[0] = [x0, min(y0, args[1]) - 1]
-                    tmpPossibilities[1] = [x0, max(y0, args[1]) + 1]
-                else:
-                    tmpPossibilities[0] = [min(x0, args[0])-1, y0]
-                    tmpPossibilities[1] = [max(x0, args[0])+1, y0]
-
-            # three hits
-            else:
-                if (x0 == args[0]):
-                    tmpPossibilities[0] = [x0, min(y0, args[1], args[3]) - 1]
-                    tmpPossibilities[1] = [x0, max(y0, args[1], args[3]) + 1]
-                else:
-                    tmpPossibilities[0] = [min(x0, args[0], args[2]) - 1, y0]
-                    tmpPossibilities[1] = [max(x0, args[0], args[2]) + 1, y0]
-        # just one hit
+        tmpList = []
+        x0 = self.lastHits[0][0]
+        y0 = self.lastHits[0][1]
+        if(len(self.lastHits) == 1):
+            tmpPossibilities.append([x0 - 1, y0])
+            tmpPossibilities.append([x0 + 1, y0])
+            tmpPossibilities.append([x0, y0 - 1])
+            tmpPossibilities.append([x0, y0 + 1])
         else:
-            for i in range(0, 4):
-                tmpPossibilities.append([])
-            tmpPossibilities[0] = [x0 - 1, y0]
-            tmpPossibilities[1] = [x0 + 1, y0]
-            tmpPossibilities[2] = [x0, y0 - 1]
-            tmpPossibilities[3] = [x0, y0 + 1]
+            if(x0 == self.lastHits[1][0]):
+                for val in self.lastHits:
+                    tmpList.append(val[1])
+                tmpPossibilities.append([x0, min(tmpList)- 1])
+                tmpPossibilities.append([x0, max(tmpList) +1])
+            else:
+                for val in self.lastHits:
+                    tmpList.append(val[0])
+                tmpPossibilities.append([min(tmpList) - 1, y0])
+                tmpPossibilities.append([max(tmpList) + 1, y0])
 
         return self.RemoveNotPossible(tmpPossibilities)
 
     def RemoveNotPossible(self, tmpPossibilities):
         for item in list(tmpPossibilities):
-            if (item not in self.opponentBoard.availableCoordinates):
+            if (item not in self.opponentBoard.GetAvailableCoordinates()):
                 tmpPossibilities.remove(item)
         return tmpPossibilities
+
+    def ExtendLastHits(self, shootCoordinates):
+        self.lastHits.append(shootCoordinates)

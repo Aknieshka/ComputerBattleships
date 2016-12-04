@@ -6,9 +6,6 @@ class Ship:
         self.coordinates = []
         self.CreateCoordinates(masts, direction, upperLeftCoords)
 
-    def IsShotDown(self):
-        print("Check if ship is shot down")
-
     def CreateCoordinates(self, masts, direction, upperLeftCoords):
         upperLeftX = upperLeftCoords[0]
         upperLeftY = upperLeftCoords[1]
@@ -17,3 +14,6 @@ class Ship:
                 self.coordinates.append([upperLeftX + i, upperLeftY])
             else:
                 self.coordinates.append([upperLeftX, upperLeftY + i])
+
+    def GetCoordinates(self):
+        return self.coordinates

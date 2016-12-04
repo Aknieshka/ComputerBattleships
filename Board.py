@@ -5,20 +5,18 @@ import Ship
 
 class Board:
     boardSize = 10
-    shipSizes = [4, 3, 2, 1]
-    numOfShips = [1, 2, 3, 4]
+    shipSizes = [5, 4, 3, 3, 2]
+    #unnecessary
+    #numOfShips = 1
 
     def __init__(self):
         self.leftShips = []
         self.availableCoordinates = []
-        self.shots = []
         self.idsGrid = None
 
-        print("Board created")
-        ''' Something like this in loop:
-        self.availableCoordinates.append([])
-        self.availableCoordinates[0] = [1, 2]
-        '''
+        for i in range(10):
+            for j in range(10):
+                self.availableCoordinates.append([i, j])
         self.idsGrid = [[None for i in range(self.boardSize)] for i in range(self.boardSize)]
         self.CreateBoard()
 
@@ -26,10 +24,10 @@ class Board:
         id = 0
         for i in range(len(self.shipSizes)):
             masts = self.shipSizes[i]
-            for j in range(self.numOfShips[i]):
-                ship = self.DrawShip(id, masts)
-                self.AddShipToBoard(ship)
-                id += 1
+            #unnecessary loop
+            ship = self.DrawShip(id, masts)
+            self.AddShipToBoard(ship)
+            id += 1
 
     def DrawShip(self, id, masts):
         direction = random.choice(["horizontal", "vertical"])
@@ -63,31 +61,51 @@ class Board:
                 coords.append([upperLeftX, upperLeftY + i])
         return coords
 
-
     def AddShipToBoard(self, ship):
         print("ADDING SHIP: ", ship.coordinates)
         self.leftShips.append(ship)
         for coord in ship.coordinates:
             self.SetIdAtCoord(coord[0], coord[1], ship.id)
-        self.PrintBoard()
+        #self.PrintBoard()
 
     def CheckIfAnyShipExists(self):
         if self.leftShips:
             return 1
         return 0
 
-    def IfHit(self):
-        print("Check if hit")
+    def IfHit(self, coordinates):
+        tmpId = self.GetIdAtCoord(coordinates[0], coordinates[1])
+        #checks if coordId is ship
+        if(tmpId != None):
+            return self.IsDestroyed(tmpId)
+        return 0
 
-    def ShipDestroyed(self):
-        print("Handle ship destroyed")
+    def IsDestroyed(self, shipId):
+        if self.IfCoordinatesAreAvailable(self.GetCoordinatesAtId(shipId)):
+            #shipHit, but not destroyed
+            return 1
+        else:
+            #shipDestroyed
+            self.ShipDestroyed(next(x for x in self.leftShips if (x).id == shipId))
+            return 2
+
+    def IfCoordinatesAreAvailable(self, shipCoord):
+        for val in shipCoord:
+            if val in self.availableCoordinates:
+                #if any coordinates of this ship are available
+                return 1
+        return 0
+
+    def GetCoordinatesAtId(self, shipId):
+        #returns coordinates of Ship with this id
+        return (next(x for x in self.leftShips if (x).id == shipId)).GetCoordinates()
+
+    def ShipDestroyed(self, ship):
+        self.leftShips.remove(ship)
 
     def Shot(self, coordinates):
-        print("Create mechanism of shotting to coordinates, inform about result")
-        #gets array of coordinates, e.g. [1,2]
-        #return 0 - missed, change player?
-        #return 1 - hit, but not destroyed
-        #return 2 - hit and destroyed
+        self.availableCoordinates.remove(coordinates)
+        return self.IfHit(coordinates)
 
     def SetIdAtCoord(self, x, y, id):
         self.idsGrid[y][x] = id
@@ -120,3 +138,6 @@ class Board:
                 else:
                     row.append(str(self.GetIdAtCoord(x, y)))
             print(row)
+
+    def GetAvailableCoordinates(self):
+        return self.availableCoordinates
