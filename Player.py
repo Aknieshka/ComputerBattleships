@@ -10,11 +10,10 @@ class Player:
         self.move = 0
 
     def PlayersMove(self):
-        while(self.opponentBoard.CheckIfAnyShipExists()):
-            if self.move == 0:
-                self.RandomShoot()
-            else:
-                self.ShootAfterHit()
+        if self.move == 0:
+            self.RandomShoot()
+        else:
+            self.ShootAfterHit()
 
     def RandomShoot(self):
         shootCoordinates = random.choice(self.opponentBoard.GetAvailableCoordinates())
