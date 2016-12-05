@@ -62,11 +62,9 @@ class Board:
         return coords
 
     def AddShipToBoard(self, ship):
-        print("ADDING SHIP: ", ship.coordinates)
         self.leftShips.append(ship)
         for coord in ship.coordinates:
             self.SetIdAtCoord(coord[0], coord[1], ship.id)
-        #self.PrintBoard()
 
     def CheckIfAnyShipExists(self):
         if self.leftShips:
@@ -128,16 +126,6 @@ class Board:
                 if not self.IsEmpty(i, j):
                     return True
         return False
-
-    def PrintBoard(self):
-        for x in range(self.boardSize):
-            row = []
-            for y in range(self.boardSize):
-                if self.idsGrid[y][x] is None:
-                    row.append("-")
-                else:
-                    row.append(str(self.GetIdAtCoord(x, y)))
-            print(row)
 
     def GetAvailableCoordinates(self):
         return self.availableCoordinates

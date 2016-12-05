@@ -2,8 +2,10 @@ import random
 
 class Player:
 
-    def __init__(self, board):
+    def __init__(self, board, id):
         print("Player created")
+        self.id = id
+        self.won = False
         self.opponentBoard = board
         self.lastHits = []
         self.possibleShots = []
@@ -17,8 +19,11 @@ class Player:
 
     def RandomShoot(self):
         shootCoordinates = random.choice(self.opponentBoard.GetAvailableCoordinates())
+        print("PLAYER", self.id, ":RANDOM SHOOT ", shootCoordinates)
         result = self.opponentBoard.Shot(shootCoordinates)
+
         if result == 1:
+            self.opponentBoard.SetIdAtCoord(shootCoordinates[0], shootCoordinates[1], None)
             self.move = 1
             self.ExtendLastHits(shootCoordinates)
             self.ShootAfterHit()
@@ -28,6 +33,7 @@ class Player:
             self.possibleShots = self.CreatePossiblities()
 
         shootCoordinates = random.choice(self.possibleShots)
+        print("PLAYER", self.id, ":SHOOT AFTER HIT ", shootCoordinates)
         result = self.opponentBoard.Shot(shootCoordinates)
         if result == 0:
             self.possibleShots.remove(shootCoordinates)
@@ -35,6 +41,8 @@ class Player:
             self.ShipHit(shootCoordinates)
         if result == 2:
             self.ShipSank()
+        if result != 0:
+            self.opponentBoard.SetIdAtCoord(shootCoordinates[0], shootCoordinates[1], None)
 
     def ShipHit(self, shootCoordinates):
         self.move = 2
@@ -46,7 +54,10 @@ class Player:
         self.move = 0
         self.lastHits = []
         self.possibleShots = []
-        self.RandomShoot()
+        if len(self.opponentBoard.leftShips) == 0:
+            self.won = True
+        else:
+            self.RandomShoot()
 
     def CreatePossiblities(self):
         tmpPossibilities = []
